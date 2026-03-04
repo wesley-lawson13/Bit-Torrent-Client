@@ -34,13 +34,13 @@ type TorrentFile struct {
 }
 
 // Open parses a torrent file
-func Open(r io.Reader) (*bencodeTorrent, error) {
+func Open(r io.Reader) (TorrentFile, error) {
 	bto := bencodeTorrent{}
 	err := bencode.Unmarshal(r, &bto)
 	if err != nil {
-		return nil, err
+		return TorrentFile{}, errors.New("Error unmarashaling the .torrent file to a bencodeTorrent struct.")
 	}
-	return &bto, nil
+	return bto.toTorrentFile()
 }
 
 // parses the individual hash pieces and puts them into an array

@@ -31,3 +31,7 @@ func parsePeers(rawPeers []byte) ([]Peer, error) {
 
 	return ret, nil
 }
+
+func (p Peer) String() string {
+	return netip.AddrPortFrom(p.IP, p.Port).String()
+}
