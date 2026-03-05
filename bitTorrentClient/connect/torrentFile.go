@@ -38,7 +38,7 @@ func Open(r io.Reader) (TorrentFile, error) {
 	bto := bencodeTorrent{}
 	err := bencode.Unmarshal(r, &bto)
 	if err != nil {
-		return TorrentFile{}, errors.New("Error unmarashaling the .torrent file to a bencodeTorrent struct.")
+		return TorrentFile{}, errors.New("Error unmarshaling the .torrent file to a bencodeTorrent struct.")
 	}
 	return bto.toTorrentFile()
 }

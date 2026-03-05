@@ -31,6 +31,13 @@ func main() {
 	}
 
 	for _, peer := range peers {
-		fmt.Printf("%v\n", peer.String())
+        conn, err := connect.NewClient(peer, [20]byte(peerId), tf)
+        if err != nil {
+            // Use printf here because most clients won't connect
+            log.Printf("Error connecting to the peer: %v\n", err)
+            continue
+        } 
+        fmt.Printf("peer %v succeeded!\n", peer.String())
+        defer conn.Close()
 	}
 }
