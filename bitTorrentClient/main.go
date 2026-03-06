@@ -35,8 +35,19 @@ func main() {
             log.Printf("peer %v failed: %v\n", peer, err)
             continue
         }
-        log.Printf("peer %v succeeded — bitfield length: %d, choked: %v\n", 
-            peer, len(cli.Bitfield), cli.Choked)
+        pw := connect.PieceWork{
+            PieceIndex: 0,
+            ExHash: tf.InfoHash,
+            PieceLen: connect.CalculatePieceLength(tf, 0),
+        }
+
+        ret, err := connect.DownloadPiece(&cli, &pw)
+        if err != nil {
+            log.Fatalf("download for peer %v failed: %v", peer, err)
+        }
+
+        log.Printf("peer %v succeeded!: buffer length = %v\n", peer, len(ret))
         cli.Conn.Close()
+        break
     }
 }
