@@ -3,7 +3,6 @@ package main
 import (
 	"bitTorrentClient/connect"
 	"crypto/rand"
-	"fmt"
 	"log"
 	"os"
 )
@@ -30,14 +29,14 @@ func main() {
 		log.Fatal(err)
 	}
 
-	for _, peer := range peers {
-        conn, err := connect.NewClient(peer, [20]byte(peerId), tf)
+    for _, peer := range peers {
+        cli, err := connect.NewClient(peer, [20]byte(peerId), tf)
         if err != nil {
-            // Use printf here because most clients won't connect
-            log.Printf("Error connecting to the peer: %v\n", err)
+            log.Printf("peer %v failed: %v\n", peer, err)
             continue
-        } 
-        fmt.Printf("peer %v succeeded!\n", peer.String())
-        defer conn.Close()
-	}
+        }
+        log.Printf("peer %v succeeded — bitfield length: %d, choked: %v\n", 
+            peer, len(cli.Bitfield), cli.Choked)
+        cli.Conn.Close()
+    }
 }

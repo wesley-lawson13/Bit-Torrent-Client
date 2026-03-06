@@ -23,7 +23,7 @@ func newHandshake(infoHash [20]byte, peerId [20]byte) *Handshake {
     return &h
 }
 
-func serialize(h *Handshake) []byte {
+func (h *Handshake) serialize() []byte {
 
     buf := make([]byte, handshakeLen)
     buf[0] = byte(len(pStr))
@@ -51,8 +51,8 @@ func deserialize(r io.Reader) (*Handshake, error) {
         return nil, errors.New("Mismatched protocol types: deserialized handshake was not a BitTorrent response.")
     }
 
-    _ = copy(h.InfoHash[:], buf[handshakeLen-40:handshakeLen-20])
-    _ = copy(h.PeerId[:], buf[handshakeLen-20:handshakeLen])
+    copy(h.InfoHash[:], buf[handshakeLen-40:handshakeLen-20])
+    copy(h.PeerId[:], buf[handshakeLen-20:handshakeLen])
 
     return &h, nil
 }
