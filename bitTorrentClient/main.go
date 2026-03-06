@@ -29,13 +29,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-    data, err := connect.Download(tf, peers, [20]byte(peerId))
-    if err != nil {
-        log.Fatalf("Error downloading file: %v\n", err)
-    }
+	data, err := connect.Download(tf, peers, [20]byte(peerId))
+	if err != nil {
+		log.Fatalf("Error downloading file: %v\n", err)
+	}
 
-    err = os.WriteFile("downloaded_debian.iso", data, 0644)
-    if err != nil {
-        log.Fatal("Could not write .iso file.")
-    }
+	err = os.WriteFile("downloaded_debian.iso", data, 0644)
+	if err != nil {
+		log.Fatal("Could not write .iso file.")
+	}
 }

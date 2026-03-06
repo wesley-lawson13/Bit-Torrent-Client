@@ -1,17 +1,17 @@
 package connect
 
 import (
+	"crypto/sha1"
 	"encoding/binary"
-    "log"
 	"errors"
+	"log"
 	"time"
-    "crypto/sha1"
 )
 
 type pieceWork struct {
-	PieceIndex int
-	ExpectedHash     [hashLen]byte
-	PieceLen   int
+	PieceIndex   int
+	ExpectedHash [hashLen]byte
+	PieceLen     int
 }
 
 type pieceResult struct {
@@ -50,11 +50,11 @@ func buildRequestPayload(index, offset, length uint32) []byte {
 
 func checkIntegrity(pw *pieceWork, buf []byte) error {
 
-    h := [hashLen]byte(sha1.Sum(buf))
-    if h != pw.ExpectedHash {
-        return errors.New("SHA1 verification failed: computed peer hash does not match expected hash.")
-    }
-    return nil
+	h := [hashLen]byte(sha1.Sum(buf))
+	if h != pw.ExpectedHash {
+		return errors.New("SHA1 verification failed: computed peer hash does not match expected hash.")
+	}
+	return nil
 }
 
 func downloadPiece(cli *Client, pw *pieceWork) ([]byte, error) {
@@ -113,77 +113,77 @@ func downloadPiece(cli *Client, pw *pieceWork) ([]byte, error) {
 
 func (tf TorrentFile) pushAllPieces(wq chan *pieceWork) {
 
-    for i, pieceHash := range tf.PieceHashes {
-        pw := pieceWork{
-            PieceIndex: i,
-            ExpectedHash: pieceHash,
-            PieceLen: calculatePieceLength(tf, i),
-        }
+	for i, pieceHash := range tf.PieceHashes {
+		pw := pieceWork{
+			PieceIndex:   i,
+			ExpectedHash: pieceHash,
+			PieceLen:     calculatePieceLength(tf, i),
+		}
 
-        wq <- &pw
-    }
+		wq <- &pw
+	}
 }
 
 func Download(tf TorrentFile, peers []Peer, peerId [20]byte) ([]byte, error) {
 
-    numPieces := len(tf.PieceHashes)
-    workQueue, results := make(chan *pieceWork, numPieces), make(chan *pieceResult, numPieces)
+	numPieces := len(tf.PieceHashes)
+	workQueue, results := make(chan *pieceWork, numPieces), make(chan *pieceResult, numPieces)
 
-    tf.pushAllPieces(workQueue)
+	tf.pushAllPieces(workQueue)
 
-    for _, peer := range peers {
+	for _, peer := range peers {
 
-        go func(peer Peer) {
+		go func(peer Peer) {
 
-            cli, err := NewClient(peer, peerId, tf)
-            if err != nil {
-                return
-            }
-            defer cli.Conn.Close()
+			cli, err := NewClient(peer, peerId, tf)
+			if err != nil {
+				return
+			}
+			defer cli.Conn.Close()
 
-            for pw := range workQueue {
+			for pw := range workQueue {
 
-                buf, err := downloadPiece(&cli, pw)
-                if err != nil {
-                    workQueue <- pw
-                    return
-                }
+				buf, err := downloadPiece(&cli, pw)
+				if err != nil {
+					workQueue <- pw
+					return
+				}
 
-                err = checkIntegrity(pw, buf)
-                if err != nil {
-                    workQueue <- pw
-                    return
-                }
+				err = checkIntegrity(pw, buf)
+				if err != nil {
+					workQueue <- pw
+					return
+				}
 
-                pr := pieceResult{
-                    PieceIndex: pw.PieceIndex,
-                    Data: buf,
-                }
-                results <- &pr
-            }
+				pr := pieceResult{
+					PieceIndex: pw.PieceIndex,
+					Data:       buf,
+				}
+				results <- &pr
+			}
 
-        }(peer)
-    }
+		}(peer)
+	}
 
-    buf, offset := make([]byte, tf.Length), 0
+	buf, offset := make([]byte, tf.Length), 0
 
-    piecesRecieved := 0
-    for pr := range results {
+	piecesRecieved := 0
+	for pr := range results {
 
-        offset = pr.PieceIndex * tf.PieceLength
-        copy(buf[offset:offset+len(pr.Data)], pr.Data)
-        log.Printf("Piece at index %v download complete -- offset: %v, data size: %v\n", pr.PieceIndex, offset, len(pr.Data))
+		offset = pr.PieceIndex * tf.PieceLength
+		copy(buf[offset:offset+len(pr.Data)], pr.Data)
+		log.Printf("Piece at index %v download complete -- offset: %v, data size: %v\n", pr.PieceIndex, offset, len(pr.Data))
 
-        // increment pieces recieved and close when all pieces have been recieved
-        piecesRecieved++
-        if piecesRecieved == numPieces {
-            break
-        }
-    }
+		// increment pieces recieved and close when all pieces have been recieved
+		piecesRecieved++
+		if piecesRecieved == numPieces {
+			break
+		}
+	}
 
-    if len(buf) != tf.Length {
-        return buf, errors.New("Download incomplete: not all pieces were recieved.")
-    }
+	if len(buf) != tf.Length {
+		return buf, errors.New("Download incomplete: not all pieces were recieved.")
+	}
 
-    return buf, nil
+	return buf, nil
 }
