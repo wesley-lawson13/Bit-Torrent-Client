@@ -13,7 +13,7 @@ type Client struct {
 	Choked   bool
 }
 
-func (c *Client) Read() (*Message, error) {
+func (c *Client) read() (*Message, error) {
 
 	m, err := readMessage(c.Conn)
 	if err != nil {
@@ -28,7 +28,7 @@ func (c *Client) Read() (*Message, error) {
 	return m, nil
 }
 
-func (c *Client) Send(m *Message) error {
+func (c *Client) send(m *Message) error {
 
 	payload := m.serialize()
 	_, err := c.Conn.Write(payload)
@@ -39,7 +39,7 @@ func (c *Client) Send(m *Message) error {
 	return nil
 }
 
-func NewClient(p Peer, peerId [20]byte, tf TorrentFile) (Client, error) {
+func newClient(p Peer, peerId [20]byte, tf TorrentFile) (Client, error) {
 
 	// create connection
 	timeout := 3 * time.Second
@@ -80,7 +80,7 @@ func NewClient(p Peer, peerId [20]byte, tf TorrentFile) (Client, error) {
 		Choked:   true,
 	}
 
-	m, err := cli.Read()
+	m, err := cli.read()
 	if err != nil {
 		return cli, err
 	}
@@ -94,7 +94,7 @@ func NewClient(p Peer, peerId [20]byte, tf TorrentFile) (Client, error) {
 		cli.Bitfield = m.Payload
 	}
 
-	err = cli.Send(&Message{MessageId: MsgInterested})
+	err = cli.send(&Message{MessageId: MsgInterested})
 	if err != nil {
 		return cli, err
 	}

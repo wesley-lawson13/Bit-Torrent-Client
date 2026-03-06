@@ -77,14 +77,14 @@ func downloadPiece(cli *Client, pw *pieceWork) ([]byte, error) {
 				Payload:   buildRequestPayload(uint32(pw.PieceIndex), uint32(bytesRequested), uint32(min(blockSize, pw.PieceLen-bytesRequested))),
 			}
 
-			err = cli.Send(&msg)
+			err = cli.send(&msg)
 			if err != nil {
 				return buf, err
 			}
 			bytesRequested += blockSize
 		}
 
-		m, err := cli.Read()
+		m, err := cli.read()
 		if err != nil {
 			return buf, err
 		}
@@ -135,7 +135,7 @@ func Download(tf TorrentFile, peers []Peer, peerId [20]byte) ([]byte, error) {
 
 		go func(peer Peer) {
 
-			cli, err := NewClient(peer, peerId, tf)
+			cli, err := newClient(peer, peerId, tf)
 			if err != nil {
 				return
 			}
@@ -143,16 +143,21 @@ func Download(tf TorrentFile, peers []Peer, peerId [20]byte) ([]byte, error) {
 
 			for pw := range workQueue {
 
+				if !cli.Bitfield.hasPiece(pw.PieceIndex) {
+					workQueue <- pw
+					continue
+				}
+
 				buf, err := downloadPiece(&cli, pw)
 				if err != nil {
 					workQueue <- pw
-					return
+					continue
 				}
 
 				err = checkIntegrity(pw, buf)
 				if err != nil {
 					workQueue <- pw
-					return
+					continue
 				}
 
 				pr := pieceResult{
