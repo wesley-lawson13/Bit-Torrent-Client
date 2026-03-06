@@ -9,7 +9,7 @@ import (
 
 func main() {
 
-	f, err := os.Open("connect/debian-13.3.0-amd64-netinst.iso.torrent")
+	f, err := os.Open("debian-13.3.0-amd64-netinst.iso.torrent")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -29,25 +29,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-    for _, peer := range peers {
-        cli, err := connect.NewClient(peer, [20]byte(peerId), tf)
-        if err != nil {
-            log.Printf("peer %v failed: %v\n", peer, err)
-            continue
-        }
-        pw := connect.PieceWork{
-            PieceIndex: 0,
-            ExHash: tf.InfoHash,
-            PieceLen: connect.CalculatePieceLength(tf, 0),
-        }
+    data, err := connect.Download(tf, peers, [20]byte(peerId))
+    if err != nil {
+        log.Fatalf("Error downloading file: %v\n", err)
+    }
 
-        ret, err := connect.DownloadPiece(&cli, &pw)
-        if err != nil {
-            log.Fatalf("download for peer %v failed: %v", peer, err)
-        }
-
-        log.Printf("peer %v succeeded!: buffer length = %v\n", peer, len(ret))
-        cli.Conn.Close()
-        break
+    err = os.WriteFile("downloaded_debian.iso", data, 0644)
+    if err != nil {
+        log.Fatal("Could not write .iso file.")
     }
 }
