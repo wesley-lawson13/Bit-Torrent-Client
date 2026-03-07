@@ -6,7 +6,7 @@ The client successfully downloads files by communicating with real trackers, per
 
 This project taught me how BitTorrent works in depth, but also helped me further my understanding of important Go programming principles like goroutines, channels, and detailed error checking and validation. 
 
-After completing this project, I feel more confident in my skills as a programmer, but also in my knowledge of networking princples and modern implementations.
+After completing this project, I feel more confident in my skills as a programmer and my knowledge of networking principles and their modern implementations.
 
 ---
 
@@ -72,9 +72,10 @@ Every downloaded piece is SHA-1 hashed and compared against the expected hash fr
 ## Usage
 
 ```bash
-caffeinate -i go run . ```
+caffeinate -i go run . 
+```
 
-*Note: caffeienate -i will ensure the program runs until completion. It is recommended since downloading can take ~10-25 minutes.* 
+*Note: 'caffeinate -i' will ensure the program runs until completion. It is recommended since downloading can take ~10-25 minutes.* 
 
 ---
 
